@@ -1,0 +1,151 @@
+<div class="orders-list">
+    <table id="orders-table">
+        <tr>
+            <th>OrderID</th>
+            <th>FoodName</th>
+            <th>OrderDate</th>
+            <th>Actions</th>
+        </tr>
+    </table>
+</div>
+<div class="order-container">
+    <div class="form-container">
+        <h3>Create Order</h3>
+        <form id="create-form">
+            <label for="orderid">
+                OrderID: 
+                <input name='orderid' type="number" required>
+            </label>
+            <label for="foodname">
+                FoodName: 
+                <input name='foodname' type="text" required>
+            </label>
+            <button class="primary-btn" type="submit">Submit</button>
+        </form>
+    </div>
+    <div class="form-container">
+        <h3>Update Order</h3>
+        <form id="update-form">
+            <label for="orderid">
+                OrderID: 
+                <input name='orderid' type="number" required>
+            </label>
+            <label for="foodname">
+                FoodName: 
+                <input name='foodname' type="text" required>
+            </label>
+            <button class="primary-btn" type="submit">Update</button>
+        </form>
+    </div>
+    <div class="form-container">
+        <h3>Delete Order</h3>
+        <form id="delete-form">
+            <label for="orderid">
+                OrderID: 
+                <input name='orderid' type="number" required>
+            </label>
+            <button class="primary-btn" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const orders = await fetchAllOrders();
+        const table = document.getElementById('orders-table');
+
+        if (orders.length === 0) {
+            const span = document.createElement('span');
+            span.textContent = 'Nothing to see here...';
+            table.insertAdjacentElement('afterend', span);
+        } else {
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.order_id}</td>
+                    <td>${order.food_name}</td>
+                    <td>${order.formatted_date}</td>
+                    <td>
+                        <button class="update-btn" onclick="handleUpdate('${order.order_id}', '${order.food_name}')">
+                            Update
+                        </button>
+                    </td>
+                    `;
+                table.appendChild(row);
+            });
+        }
+    });
+
+    function handleUpdate(order_id, food_name) {
+        const table = document.getElementById('orders-table');
+        const form = document.getElementById('update-form');
+        let input_orderid = form.querySelector("input[name='orderid']");
+        let input_foodname = form.querySelector("input[name='foodname']");
+        input_orderid.value = order_id;
+        input_foodname.value = food_name;
+    }
+
+    function confirmDelete(order_id) {
+        return confirm(`Are you sure you want to delete order '${order_id}'?`);
+    }
+
+    document.getElementById('delete-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const order_id = document.querySelector("#delete-form input[name='orderid']").value;
+        const confirm = confirmDelete(order_id);
+
+        if (confirm) {
+            if (deleteOrder(order_id)) {
+                console.log(`deleted ${order_id}`);
+            } else {
+                console.log(`failed to delete ${order_id}`);
+            }
+        } 
+
+        location.reload();
+    });
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = document.getElementById('create-form');
+        const order_id = form.querySelector("input[name='orderid']").value;
+        const food_name = form.querySelector("input[name='foodname']").value;
+
+        const orderdata = {
+            'order_id': order_id,
+            'food_name': food_name,
+        };
+
+        const result = await createOrder(orderdata);
+        if(result) {
+            alert('Order created!');
+        } else {
+            alert('Order failed to create');
+        }
+
+        location.reload();
+    });
+
+    document.getElementById('update-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = document.getElementById('update-form');
+        const order_id = form.querySelector("input[name='orderid']").value;
+        const food_name = form.querySelector("input[name='foodname']").value;
+
+        const orderdata = {
+            'order_id': order_id,
+            'food_name': food_name,
+        };
+
+        const result = await updateOrder(orderdata);
+        if(result) {
+            alert('Order updated!');
+        } else {
+            alert('Order failed to update.');
+        }
+
+        location.reload();
+    });
+</script>
